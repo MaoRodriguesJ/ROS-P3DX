@@ -43,7 +43,7 @@
 
 \section{Quick Guide and Explanation}
 We are currently using the Indigo version of ROS which is the last LTS release
-and has support for the needed packages until now.
+and has support for the needed packages until now. (ROS Jade has support too).
 
 The basic concept of ROS is the message-passing between processes that is made
 by topics, for example we have topics publishing informations as odometry and we
@@ -53,6 +53,10 @@ information.
 As we go through the packages used, this will be more easy to understand. You
 can find in the links below information about ROS, ROS topics and the page where
 you can find the tutorials made by ROS.
+
+You probably can not copy and paste from this document because of the indentation,
+so you can follow the links given and copy from there, or can type yourself,
+beware of underscores and dashes.
 
 \begin{itemize}
 \item \href{https://en.wikipedia.org/wiki/Robot_Operating_System}{ROS Wikipedia}
@@ -215,6 +219,7 @@ sudo apt-get install ros-indigo-sicktoolbox-wrapper
 \item Then you can clone the repository into your source directory of ROS
 workspace and build the package.
 \begin{lstlisting}
+cd catkin_ws/src
 git clone https://github.com/ros-drivers/sicktoolbox_wrapper
 cd catkin_ws
 catkin_make
@@ -245,10 +250,52 @@ The Gmapping is used to generate a map from a laser scan.
 
 \item Installation
 \begin{enumerate}
+\item First you will need to install some dependencies.
+\begin{lstlisting}
+sudo apt-get install ros-indigo-gmapping
+sudo apt-get install ros-indigo-slam-gmapping
+sudo apt-get install ros-indigo-openslam-gmapping
+\end{lstlisting}
+\item Then you can clone the repository into your source directory and build the
+package.
+\begin{lstlisting}
+cd catkin_ws/src
+git clone https://github.com/ros-perception/slam_gmapping
+cd catkin_ws
+catkin_make
+\end{lstlisting}
 \end{enumerate}
 
 \item Using Gmapping
 \begin{enumerate}
+\item Fisrt we need the laser reference frame, the RosAria node already publishes
+two frames, the "odom" frame and the "base link" frame, we need a frame called
+"laser". The frame transformation below with everything with '0' is just to see
+if it's working. We can improve it's precision by doing a right transformation
+from the "base link" frame to the "laser one", following this site \href{http://wiki.ros.org/navigation/Tutorials/RobotSetup/TF}{ROS tf Setup}.
+\begin{lstlisting}
+rosrun tf static_transform_publisher 0 0 0 0 0 0 /base_link /laser /100
+\end{lstlisting}
+\item Now you can start the Gmapping node and see the mapping on the GUI tool
+rviz.
+\begin{lstlisting}
+rosrun gmapping slam_gmapping scan:=scan
+rosrun rviz rviz
+\end{lstlisting}
+\item In the rviz you can add topics to see what they are publishing in the add
+button on the bottom left, and in the right tab of the opening window. To see the
+map that is being producing by Gmapping you can add the "/map" topic.
+\item Gmapping does not need to be running on the robot, you can start in your PC
+if the ROS enviroment variables are correct.
+\item To move the robot around to test what it is mapping you can use the
+"rosaria client" package, after you clone it's repository you will need to edit
+the "print state" file deleting everything referencing to "Bumper State". Then
+you can build it corretly and start the teleop node to use the arrow keys to move
+around and use the space bar to stop. The repository is: \href{https://github.com/pengtang/rosaria_client}{RosAria Client}
+And to run the teleop node:
+\begin{lstlisting}
+rosrun rosaria_client teleop
+\end{lstlisting}
 \end{enumerate}
 \end{enumerate}
 

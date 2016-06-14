@@ -1,0 +1,215 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{indentfirst}
+
+\lstset{
+  basicstyle = \small,
+  breaklines = true,
+  language = bash,
+  numbers = left,
+  numbersep = 5pt,
+  numberstyle = \tiny\color{gray},
+  stepnumber = 1,
+  commentstyle = \color{gray},
+}
+
+%links reference color setup
+\hypersetup{
+	colorlinks = true,
+	urlcolor = blue,
+}
+
+%command edits, to delete number of which section but maintaning a number for
+%the subsections, also edit the space between line
+\makeatletter
+\renewcommand\thesection{}
+\renewcommand\thesubsection{\@Roman\c@subsection}
+\renewcommand{\baselinestretch}{1.2}
+\makeatother
+
+%edit in the paragraph length
+\setlength{\parindent}{20pt}
+
+\title{Robotic Operating System - ROS}
+\author{Salomão Rodrigues Jacinto}
+
+\begin{document}
+
+\maketitle
+
+\section{Quick Guide and Explanation}
+We are currently using the Indigo version of ROS which is the last LTS release
+and has support for the needed packages until now.
+
+The basic concept of ROS is the message-passing between processes that is made
+by topics, for example we have topics publishing informations as odometry and we
+can also have topics that are subscribed to the odometry one to receive this
+information.
+
+As we go through the packages used, this will be more easy to understand. You
+can find in the links below information about ROS, ROS topics and the page where
+you can find the tutorials made by ROS.
+
+\begin{itemize}
+\item \href{https://en.wikipedia.org/wiki/Robot_Operating_System}{ROS Wikipedia}
+\item \href{http://wiki.ros.org/ROS/Tutorials/UnderstandingTopics}{ROS Topics}
+\item \href{http://wiki.ros.org/ROS/Tutorials}{ROS Tutorials}
+\end{itemize}
+
+
+\section{Installation}
+The complete installation guide can be found at:
+
+\begin{itemize}
+\item \href{http://wiki.ros.org/indigo/Installation/Ubuntu}{ROS Installation}
+\end{itemize}
+
+As said before we are using Indigo version and to install it you will need
+Ubuntu 13.10 or 14.04. Ubuntu is the supported operating system, you can try
+install in other distributions but beware you might need to downgrade or install
+aditional libraries.
+\\
+\\
+\begin{enumerate}
+\item Installation
+\\
+All repositories need to be allowed, "restricted", "universe" and "multiverse".
+\begin{enumerate}
+
+\item Setup sources.list and keys
+\begin{lstlisting}
+sudo sh -c '. /etc/lsb-release && echo "deb http://ros.fei.edu.br/archive-ros/packages.ros.org/ros/ubuntu $DISTRIB_CODENAME main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net --recv-key 0xB01FA116
+sudo apt-get update
+\end{lstlisting}
+\item Install
+
+For full intallation use:
+\begin{lstlisting}
+sudo apt-get install ros-indigo-desktop-full
+\end{lstlisting}
+
+For the robot installation, with no GUI tools use:
+\begin{lstlisting}
+sudo apt-get install ros-indigo-ros-base
+\end{lstlisting}
+
+If you want to search for a packages you can use:
+\begin{lstlisting}
+sudo apt-cache search ros-indigo-{PAKCAGENAME}
+\end{lstlisting}
+
+To easily install system dependencies we need to initialize rosdep:
+\begin{lstlisting}
+sudo rosdep init
+rosdep update
+\end{lstlisting}
+\end{enumerate}
+
+\item Configuration
+\begin{enumerate}
+
+\item To update the ROS environment variables automatically in every new shell:
+\begin{lstlisting}
+echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+\end{lstlisting}
+
+\item Create a workspace and initialize it:
+\begin{lstlisting}
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src
+catkin_init_workspace
+cd ..
+catkin_make
+echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+\end{lstlisting}
+\end{enumerate}
+
+\item Robot and PC connection
+\paragraph{}
+Both PC and the robot need to be connected to the same network and some variables
+need to be set for them to communicate with each other. Some command lines will
+be useful:
+\begin{lstlisting}
+hostname #to find your pc name
+hostname -I #to find your IP address
+\end{lstlisting}
+
+\paragraph{}
+And you will need to change this two files, "~/.bashrc" and "/etc/hosts".
+In the bash file you add the lines below, and in the hosts you add the IP's
+followed by their hostnames. The bash and hosts files need to be updated every
+time beacuse UFSC has a dynamic IP.
+\begin{enumerate}
+
+\item ROS Variables on PC
+\begin{lstlisting}
+ROS_IP={YOUR-IP}
+ROS_HOSTNAME{YOUR-HOSTNAME}
+ROS_MASTER_URI=http://{ROBOT-IP}.11311
+\end{lstlisting}
+
+\item ROS Variables on the Robot
+\begin{lstlisting}
+ROS_IP={ROBOT-IP}
+ROS_HOSTNAME{ROBOT-HOSTNAME}
+ROS_MASTER_URI=http://{ROBOT-IP}.11311
+\end{lstlisting}
+\end{enumerate}
+\end{enumerate}
+
+\section{Packages Used}
+\subsection{RosAria}
+The RosAria package is used to communicate ROS with ARIA which is the P3-DX
+library. It creates topics such as "cmdvel" to publish robot speed and "pose"
+to receive robots odometry information.
+
+\begin{enumerate}
+\item Installation
+\begin{enumerate}
+
+\item First you need to install ARIA, you can download in the link below and
+install using "sudo dpkg -i NAME-OF-PACKAGE".
+\begin{itemize}
+\item \href{http://robots.mobilerobots.com/wiki/ARIA}{ARIA Page}
+\end{itemize}
+
+\item Then you go to your source workspace directory and clone the RosAria
+repository to it, then you build the package.
+\begin{lstlisting}
+cd ~/catkin_ws/src
+git clone https://github.com/amor-ros-pkg/rosaria.git
+catkin_make #if this doesn't work you can try catkin_make --force-cmake
+\end{lstlisting}
+\end{enumerate}
+
+\item Using RosAria
+\begin{enumerate}
+
+\item You need to give write and read permissions to the serial port that the
+microcontroller is connected to, and then start the RosAria node.
+\begin{lstlisting}
+sudo chmod a+rw /dev/ttyS0
+rosrun rosaria RosAria _port:=/dev/ttyS0
+\end{lstlisting}
+\item The laser topic of RosAria doesn't work properly, for that we will use
+sicktoolbox.
+
+\end{enumerate}
+\end{enumerate}
+
+\subsection{Sicktoolbox Wrapper}
+
+\subsection{Gmapping}
+
+\subsection{Map Server}
+
+\end{document}
+
+\begin{lstlisting}
+\end{lstlisting}

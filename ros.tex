@@ -63,7 +63,6 @@ you can find the tutorials made by ROS.
 
 \section{Installation}
 The complete installation guide can be found at:
-
 \begin{itemize}
 \item \href{http://wiki.ros.org/indigo/Installation/Ubuntu}{ROS Installation}
 \end{itemize}
@@ -75,34 +74,33 @@ aditional libraries.
 \\
 \\
 \begin{enumerate}
+
 \item Installation
 \\
 All repositories need to be allowed, "restricted", "universe" and "multiverse".
 \begin{enumerate}
-
 \item Setup sources.list and keys
 \begin{lstlisting}
 sudo sh -c '. /etc/lsb-release && echo "deb http://ros.fei.edu.br/archive-ros/packages.ros.org/ros/ubuntu $DISTRIB_CODENAME main" > /etc/apt/sources.list.d/ros-latest.list'
 sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net --recv-key 0xB01FA116
 sudo apt-get update
+
 \end{lstlisting}
+
 \item Install
 
 For full intallation use:
 \begin{lstlisting}
 sudo apt-get install ros-indigo-desktop-full
 \end{lstlisting}
-
 For the robot installation, with no GUI tools use:
 \begin{lstlisting}
 sudo apt-get install ros-indigo-ros-base
 \end{lstlisting}
-
 If you want to search for a packages you can use:
 \begin{lstlisting}
 sudo apt-cache search ros-indigo-{PAKCAGENAME}
 \end{lstlisting}
-
 To easily install system dependencies we need to initialize rosdep:
 \begin{lstlisting}
 sudo rosdep init
@@ -112,13 +110,11 @@ rosdep update
 
 \item Configuration
 \begin{enumerate}
-
 \item To update the ROS environment variables automatically in every new shell:
 \begin{lstlisting}
 echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 \end{lstlisting}
-
 \item Create a workspace and initialize it:
 \begin{lstlisting}
 mkdir -p ~/catkin_ws/src
@@ -139,21 +135,18 @@ be useful:
 hostname #to find your pc name
 hostname -I #to find your IP address
 \end{lstlisting}
-
 \paragraph{}
 And you will need to change this two files, "~/.bashrc" and "/etc/hosts".
 In the bash file you add the lines below, and in the hosts you add the IP's
 followed by their hostnames. The bash and hosts files need to be updated every
 time beacuse UFSC has a dynamic IP.
 \begin{enumerate}
-
 \item ROS Variables on PC
 \begin{lstlisting}
 ROS_IP={YOUR-IP}
 ROS_HOSTNAME{YOUR-HOSTNAME}
 ROS_MASTER_URI=http://{ROBOT-IP}.11311
 \end{lstlisting}
-
 \item ROS Variables on the Robot
 \begin{lstlisting}
 ROS_IP={ROBOT-IP}
@@ -161,53 +154,115 @@ ROS_HOSTNAME{ROBOT-HOSTNAME}
 ROS_MASTER_URI=http://{ROBOT-IP}.11311
 \end{lstlisting}
 \end{enumerate}
+\paragraph{}
+The first thing you will run is the main ros node, "roscore", with that running
+you can run the nodes from the packages below.
 \end{enumerate}
 
 \section{Packages Used}
+The RosAria and Sicktoolbox Wrapper need to run on the robot, so you can do that
+on the robot itself or through ssh.
+
 \subsection{RosAria}
 The RosAria package is used to communicate ROS with ARIA which is the P3-DX
 library. It creates topics such as "cmdvel" to publish robot speed and "pose"
-to receive robots odometry information.
-
+to receive robots odometry information.\newline
 \begin{enumerate}
+
 \item Installation
 \begin{enumerate}
-
 \item First you need to install ARIA, you can download in the link below and
 install using "sudo dpkg -i NAME-OF-PACKAGE".
 \begin{itemize}
 \item \href{http://robots.mobilerobots.com/wiki/ARIA}{ARIA Page}
 \end{itemize}
-
 \item Then you go to your source workspace directory and clone the RosAria
 repository to it, then you build the package.
 \begin{lstlisting}
 cd ~/catkin_ws/src
 git clone https://github.com/amor-ros-pkg/rosaria.git
+cd ~/catkin_ws
 catkin_make #if this doesn't work you can try catkin_make --force-cmake
 \end{lstlisting}
 \end{enumerate}
 
 \item Using RosAria
 \begin{enumerate}
-
 \item You need to give write and read permissions to the serial port that the
-microcontroller is connected to, and then start the RosAria node.
+microcontroller is connected to (in this case 0),
+and then start the RosAria node.
 \begin{lstlisting}
 sudo chmod a+rw /dev/ttyS0
 rosrun rosaria RosAria _port:=/dev/ttyS0
 \end{lstlisting}
 \item The laser topic of RosAria doesn't work properly, for that we will use
 sicktoolbox.
-
 \end{enumerate}
 \end{enumerate}
 
 \subsection{Sicktoolbox Wrapper}
+The Sicktoolbox Wrapper is used to publish laser information in the "scan" topic
+properly for further use in the gmapping package.
+\begin{enumerate}
+
+\item Installation
+\begin{enumerate}
+\item First you will need to install some dependencies.
+\begin{lstlisting}
+sudo apt-get install ros-indigo-sicktoolbox
+sudo apt-get install ros-indigo-sicktoolbox-wrapper
+\end{lstlisting}
+\item Then you can clone the repository into your source directory of ROS
+workspace and build the package.
+\begin{lstlisting}
+git clone https://github.com/ros-drivers/sicktoolbox_wrapper
+cd catkin_ws
+catkin_make
+\end{lstlisting}
+\end{enumerate}
+
+\item Using Sicktoolbox Wrapper
+\begin{enumerate}
+\item You need to change the permission of the serial port that the laser is
+connected to (in this case 2), and change it's IRQ number.
+\begin{lstlisting}
+sudo chmod a+rw /dev/ttyS2
+sudo setserial /dev/ttyS2 irq 10
+\end{lstlisting}
+\item Then you can run with the following parameters.
+\begin{lstlisting}
+rosrun sicktoolbox_wrapper sicklms _port:=/dev/ttyS2 _baud:=38400 _connect_delay:=40
+\end{lstlisting}
+\item We need this connection delay because the laser becomes available after
+turning on after a few seconds.
+\end{enumerate}
+\end{enumerate}
+
 
 \subsection{Gmapping}
+The Gmapping is used to generate a map from a laser scan.
+\begin{enumerate}
+
+\item Installation
+\begin{enumerate}
+\end{enumerate}
+
+\item Using Gmapping
+\begin{enumerate}
+\end{enumerate}
+\end{enumerate}
 
 \subsection{Map Server}
+\begin{enumerate}
+
+\item Installation
+\begin{enumerate}
+\end{enumerate}
+
+\item Using Map Server
+\begin{enumerate}
+\end{enumerate}
+\end{enumerate}
 
 \end{document}
 
